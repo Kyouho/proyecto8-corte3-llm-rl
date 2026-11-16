@@ -272,9 +272,13 @@ form.onsubmit = async (ev) => {
 function pintarRecomendacion(texto, estado){
   const partes = {};
   let actual = null;
+  const SECCION = {d:"1", a:"2", m:"3"};
   for (const linea of texto.split("\n")) {
-    const m = linea.match(/^\s*(?:\*\*)?\s*([123])[.)]\s*(?:\*\*)?\s*(.*)$/);
-    if (m && !partes[m[1]]) { actual = m[1]; partes[actual] = [m[2]]; }
+    // "1. **Diagnóstico:** …", "- **Acciones:**", "**Mensaje para el cliente:** …" o solo "2. …"
+    const e = linea.match(/^\s*(?:[-*•]|\d[.)])?\s*\**\s*(diagn[oó]stico|acciones|mensaje)[^:\n]{0,30}:\s*\**\s*(.*)$/i);
+    const n = linea.match(/^\s*(?:\*\*)?\s*([123])[.)]\s*(?:\*\*)?\s*(.*)$/);
+    const clave = e ? SECCION[e[1][0].toLowerCase()] : (n ? n[1] : null);
+    if (clave && !partes[clave]) { actual = clave; partes[actual] = [e ? e[2] : n[2]]; }
     else if (actual) partes[actual].push(linea);
   }
   if (!partes["1"] || !partes["2"]) return `<div class="llm">${md(texto)}</div>`;
