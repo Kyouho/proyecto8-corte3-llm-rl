@@ -1,0 +1,10 @@
+fecha,estado,accion,recompensa,q_antes,q_despues,epsilon,tipo,estrellas,comentario
+2026-11-16T20:37:45,Rápida,priorizar_tienda,0.5,0.1,0.22,0.5,estrellas,4,Coherente; priorizar no hacia falta con 13 min y la niebla no es clima favorable
+2026-11-16T20:38:15,Intermedia,priorizar_tienda,0.0,0.15,0.105,0.475,estrellas,3,"Diagnostico correcto, pero con 143 min deberia avisar al cliente"
+2026-11-16T20:38:48,Lenta,reasignar_repartidor,0.5,0.1,0.22,0.45125,estrellas,4,Acciones concretas y avisa al cliente; nublado no es clima adverso
+2026-11-16T20:39:15,Rápida,despacho_estandar,-0.5,0.3,0.06,0.42868749999999994,estrellas,2,Ignora el atasco y ofrece descuento en entrega rapida
+2026-11-16T20:39:44,Intermedia,avisar_cliente,0.0,0.2,0.14,0.40725312499999994,estrellas,3,Estrategia correcta pero no menciona el atasco como causa
+2026-11-16T20:40:14,Lenta,avisar_cliente,0.5,0.25,0.325,0.3868904687499999,estrellas,4,Buenas acciones para pedido lento; el sol no es causa de demora
+2026-11-16T20:40:43,Rápida,priorizar_tienda,0.5,0.22,0.304,0.3675459453124999,estrellas,4,Acciones adecuadas para la tormenta de arena
+2026-11-16T20:41:13,Intermedia,ruta_alternativa,-0.5,0.15,-0.04500000000000001,0.34916864804687486,estrellas,2,Ruta alternativa no aplica con trafico bajo; niebla no es buen clima
+2026-11-16T20:41:43,Lenta,reasignar_repartidor,1.0,0.22,0.45399999999999996,0.3317102156445311,estrellas,5,Diagnostico correcto y acciones concretas

@@ -1,0 +1,62 @@
+{
+  "modelo": "Ensamble total (x6)",
+  "temperatura": 1.0784899221190676,
+  "umbral_decision": 0.42000000000000004,
+  "rapida_max_min": 70,
+  "lenta_min_min": 180,
+  "corte_intermedia_A": 90,
+  "corte_intermedia_B": 155,
+  "nombres": {
+    "rapida": "Rápida (≤70 min)",
+    "intermedia": "Intermedia",
+    "lenta": "Lenta (≥180 min)"
+  },
+  "opciones": {
+    "Weather": [
+      "Cloudy",
+      "Fog",
+      "Sandstorms",
+      "Stormy",
+      "Sunny",
+      "Windy"
+    ],
+    "Traffic": [
+      "High",
+      "Jam",
+      "Low",
+      "Medium"
+    ],
+    "Vehicle": [
+      "motorcycle",
+      "scooter",
+      "van"
+    ],
+    "Area": [
+      "Metropolitian",
+      "Other",
+      "Semi-Urban",
+      "Urban"
+    ],
+    "Category": [
+      "Apparel",
+      "Books",
+      "Clothing",
+      "Cosmetics",
+      "Electronics",
+      "Grocery",
+      "Home",
+      "Jewelry",
+      "Kitchen",
+      "Outdoors",
+      "Pet Supplies",
+      "Shoes",
+      "Skincare",
+      "Snacks",
+      "Sports",
+      "Toys"
+    ]
+  },
+  "acierto_test": 0.9864712514092446,
+  "error_test": 0.013528748590755368,
+  "log_loss_test": 0.030056250194945427
+}

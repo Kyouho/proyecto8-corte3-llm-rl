@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrega Amazon: red + LLM + RL</title>
+<style>
+  :root { --fondo:#f4f6f8; --tarjeta:#fff; --texto:#1d2733; --suave:#5b6876; --borde:#dfe4ea;
+          --primario:#232f3e; --acento:#ff9900; --bien:#1f8a4c; --mal:#c0392b; --medio:#b7791f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--fondo); color:var(--texto); }
+  header { background:var(--primario); color:#fff; padding:18px 16px; }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; font-size:13px; opacity:.85; }
+  main { max-width:1100px; margin:0 auto; padding:16px; display:grid; gap:16px; grid-template-columns:minmax(0,1fr) minmax(0,1.25fr); }
+  @media (max-width:860px){ main { grid-template-columns:1fr; } }
+  .tarjeta { background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:16px; }
+  h2 { font-size:16px; margin:0 0 12px; }
+  form { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--suave); }
+  input, select, textarea { padding:7px 8px; font-size:14px; border:1px solid var(--borde); border-radius:6px; color:var(--texto); background:#fff; width:100%; }
+  .fila-botones { grid-column:1/-1; display:flex; gap:8px; flex-wrap:wrap; }
+  button { cursor:pointer; border:0; border-radius:8px; padding:9px 14px; font-size:14px; }
+  .principal { background:var(--primario); color:#fff; flex:1; }
+  .ejemplo { background:#e9edf2; color:var(--texto); }
+  .principal:disabled { opacity:.6; cursor:wait; }
+  .Rápida{--c:var(--bien); --c-suave:#e7f5ec;} .Intermedia{--c:var(--medio); --c-suave:#fbf1e1;} .Lenta{--c:var(--mal); --c-suave:#fbe9e7;}
+  .dato { font-size:14px; color:var(--suave); }
+  .dato b { color:var(--texto); }
+  .seccion { font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--suave); margin:20px 0 8px; }
+
+  /* --- Predicción --- */
+  .hero { border-radius:12px; padding:16px; background:linear-gradient(135deg, var(--c-suave), #fff 75%); border:1px solid var(--borde); border-left:6px solid var(--c); }
+  .hero-fila { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .chip { display:inline-block; padding:5px 12px; border-radius:999px; font-weight:700; font-size:13px; color:#fff; background:var(--c); }
+  .minutos { font-size:44px; font-weight:800; line-height:1; color:var(--c); margin-top:10px; font-variant-numeric:tabular-nums; }
+  .minutos small { font-size:15px; font-weight:600; color:var(--suave); margin-left:4px; }
+  .prob { min-width:170px; flex:0 1 220px; }
+  .prob .etq { display:flex; justify-content:space-between; font-size:12.5px; color:var(--suave); margin-bottom:5px; }
+  .prob .etq b { color:var(--texto); }
+  .barra { height:8px; border-radius:99px; background:#e6eaef; overflow:hidden; }
+  .barra > i { display:block; height:100%; border-radius:99px; background:var(--c); transition:width .6s ease; }
+  .linea { position:relative; margin-top:18px; }
+  .zonas { display:flex; height:10px; border-radius:99px; overflow:hidden; }
+  .zonas span:nth-child(1){ flex:70; background:#bfe3cc; } .zonas span:nth-child(2){ flex:110; background:#f2d9ab; } .zonas span:nth-child(3){ flex:60; background:#f1c1bb; }
+  .marca { position:absolute; top:-5px; width:20px; height:20px; margin-left:-10px; border-radius:50%; background:#fff; border:4px solid var(--c); box-shadow:0 1px 4px rgba(0,0,0,.25); transition:left .6s ease; }
+  .escala { position:relative; height:14px; font-size:11px; color:var(--suave); margin-top:6px; }
+  .escala span { position:absolute; transform:translateX(-50%); white-space:nowrap; }
+  .escala span:first-child { transform:none; } .escala span:last-child { transform:translateX(-100%); }
+
+  /* --- Recomendación del LLM --- */
+  .diag { display:flex; gap:10px; background:#f3f6fa; border-radius:10px; padding:12px 14px; line-height:1.5; font-size:14.5px; }
+  .diag .ico { font-size:20px; line-height:1.2; }
+  .pasos { list-style:none; margin:0; padding:0; display:grid; gap:8px; counter-reset:paso; }
+  .pasos li { counter-increment:paso; display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--borde); border-radius:10px; font-size:14px; line-height:1.45; background:#fff; }
+  .pasos li::before { content:counter(paso); flex:0 0 24px; height:24px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:700; color:#fff; background:var(--primario); }
+  .pasos li.principal-acc { border-color:var(--acento); background:#fff8ec; }
+  .pasos li.principal-acc::before { background:var(--acento); }
+  .burbuja { position:relative; background:var(--primario); color:#fff; border-radius:14px 14px 14px 4px; padding:12px 14px; font-size:14px; line-height:1.5; max-width:95%; }
+  .burbuja .de { display:block; font-size:11px; opacity:.7; margin-bottom:4px; text-transform:uppercase; letter-spacing:.05em; }
+  .llm { line-height:1.55; font-size:14.5px; background:#fbfcfd; border:1px solid var(--borde); border-radius:10px; padding:12px; }
+
+  /* --- Agente RL --- */
+  .rl { display:flex; flex-wrap:wrap; gap:6px; margin-top:14px; }
+  .pill { font-size:12px; padding:4px 10px; border-radius:999px; background:#eef1f5; color:var(--texto); }
+  .pill.estr { background:#232f3e; color:#fff; }
+  .pill.explo { background:#e8f0fe; color:#1a56c4; }
+  .pill.explota { background:#e7f5ec; color:var(--bien); }
+
+  /* --- Feedback --- */
+  .caja-fb { border:1px solid var(--borde); border-radius:12px; padding:14px; background:#fcfdfe; }
+  .estrellas { display:flex; gap:6px; font-size:32px; margin:0 0 8px; }
+  .estrellas span { cursor:pointer; color:#d3d9e0; user-select:none; transition:transform .12s, color .12s; }
+  .estrellas span:hover { transform:scale(1.15); }
+  .estrellas span.on { color:var(--acento); }
+  .acciones-rl { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+  .acciones-rl li { display:grid; grid-template-columns:1fr auto; gap:6px 10px; align-items:center; border:1px solid var(--borde); border-radius:10px; padding:10px 12px; font-size:13.5px; }
+  .acciones-rl .q { grid-column:1; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--suave); }
+  .acciones-rl .q .barra { flex:1; max-width:160px; height:6px; }
+  .acciones-rl .q .barra > i { background:var(--acento); }
+  .acciones-rl .votos { grid-row:1 / span 2; grid-column:2; display:flex; gap:6px; }
+  .acciones-rl button { padding:6px 10px; background:#eef1f5; font-size:15px; }
+  .acciones-rl button:hover { background:#e1e6ec; }
+
+  /* --- Cargando --- */
+  .cargando { display:grid; gap:10px; }
+  .cargando i { display:block; height:14px; border-radius:6px; background:linear-gradient(90deg,#eef1f5 25%,#e2e7ed 50%,#eef1f5 75%); background-size:200% 100%; animation:brillo 1.2s infinite; }
+  .cargando i.alto { height:90px; border-radius:12px; }
+  @keyframes brillo { to { background-position:-200% 0; } }
+  @media (prefers-reduced-motion:reduce){ .cargando i, .barra > i, .marca { animation:none; transition:none; } }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; }
+  th, td { border:1px solid var(--borde); padding:5px 6px; text-align:center; }
+  th:first-child, td:first-child { text-align:left; }
+  .tabla-scroll { overflow-x:auto; }
+  .aviso { font-size:13px; margin-top:8px; }
+  .servidor { margin-top:8px; font-size:13px; color:var(--suave); }
+  .servidor summary { cursor:pointer; }
+  .fila-api { display:flex; gap:8px; }
+  .oculto { display:none; }
+  .error { color:var(--mal); }
+</style>
+</head>
+<body>
+<header>
+  <h1>¿Cómo llegará el pedido? Red neuronal + LLM + Aprendizaje por refuerzo</h1>
+  <p>Proyecto 8 · Kevin Tapias, Sebastian Villera y Anuar Marriaga · Rápida ≤ 70 min · Lenta ≥ 180 min</p>
+</header>
+<main>
+  <section class="tarjeta">
+    <h2>1. Datos del pedido</h2>
+    <form id="form">
+      <label>Edad del repartidor<input name="Agent_Age" type="number" value="30" required></label>
+      <label>Calificación (1-5)<input name="Agent_Rating" type="number" step="0.1" value="4.6" required></label>
+      <label>Latitud tienda<input name="Store_Latitude" type="number" step="any" value="12.914" required></label>
+      <label>Longitud tienda<input name="Store_Longitude" type="number" step="any" value="77.678" required></label>
+      <label>Latitud destino<input name="Drop_Latitude" type="number" step="any" value="12.954" required></label>
+      <label>Longitud destino<input name="Drop_Longitude" type="number" step="any" value="77.718" required></label>
+      <label>Fecha<input name="Order_Date" type="date" value="2022-03-19" required></label>
+      <label>Hora del pedido<input name="Order_Time" type="time" value="18:30" required></label>
+      <label>Hora de recogida<input name="Pickup_Time" type="time" value="18:45" required></label>
+      <label>Clima<select name="Weather"></select></label>
+      <label>Tráfico<select name="Traffic"></select></label>
+      <label>Vehículo<select name="Vehicle"></select></label>
+      <label>Área<select name="Area"></select></label>
+      <label>Categoría<select name="Category"></select></label>
+      <div class="fila-botones">
+        <button type="button" class="ejemplo" data-ej="rapido">Ejemplo rápido</button>
+        <button type="button" class="ejemplo" data-ej="intermedio">Ejemplo intermedio</button>
+        <button type="button" class="ejemplo" data-ej="lento">Ejemplo lento</button>
+      </div>
+      <div class="fila-botones"><button class="principal" id="btn">Predecir y recomendar</button></div>
+    </form>
+    <p id="estadoApi" class="aviso"></p>
+    <details id="cajaApi" class="servidor">
+      <summary>Servidor de la API</summary>
+      <p class="aviso">Si abres esta página desde Vercel, pega aquí el link <b>https://….trycloudflare.com</b> que imprime el Paso 9 del notebook en Colab.</p>
+      <div class="fila-api"><input id="urlApi" type="url" placeholder="https://….trycloudflare.com"><button type="button" class="ejemplo" id="conectar">Conectar</button></div>
+    </details>
+  </section>
+
+  <section class="tarjeta">
+    <h2>2. Predicción y recomendación</h2>
+    <div id="vacio" class="dato">Llena el formulario y pulsa <b>Predecir y recomendar</b>. El LLM tarda unos segundos.</div>
+    <div id="cargando" class="cargando oculto"><i class="alto"></i><i style="width:90%"></i><i style="width:75%"></i><i style="width:82%"></i><i style="width:60%"></i></div>
+    <div id="resultado" class="oculto">
+      <div id="hero" class="hero">
+        <div class="hero-fila">
+          <div>
+            <span id="chip" class="chip"></span>
+            <div class="minutos"><span id="minutos"></span><small>min estimados</small></div>
+          </div>
+          <div class="prob">
+            <div class="etq"><span>Probabilidad de entrega lenta</span><b id="prob"></b></div>
+            <div class="barra"><i id="probBarra"></i></div>
+          </div>
+        </div>
+        <div class="linea" aria-hidden="true">
+          <div class="zonas"><span></span><span></span><span></span></div>
+          <div class="marca" id="marca"></div>
+        </div>
+        <div class="escala"><span style="left:0">0 min</span><span style="left:29.17%">70</span><span style="left:75%">180</span><span style="left:100%">240+</span></div>
+      </div>
+
+      <div id="llm"></div>
+      <div class="rl">
+        <span class="pill estr" id="accion" title="Estrategia escogida por el agente de Q-learning"></span>
+        <span class="pill" id="modo"></span>
+        <span class="pill">ε = <span id="eps"></span></span>
+        <span class="pill">LLM: <span id="seg"></span> s</span>
+      </div>
+
+      <h2 style="margin-top:20px">3. Califica la recomendación (feedback)</h2>
+      <div class="caja-fb">
+        <div class="estrellas" id="estrellas"><span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span></div>
+        <textarea id="comentario" rows="2" placeholder="Comentario opcional"></textarea>
+        <div class="fila-botones" style="margin-top:8px"><button class="principal" id="enviar">Enviar calificación</button></div>
+        <p id="msgFb" class="aviso"></p>
+      </div>
+
+      <div class="seccion">Otras estrategias del agente (mayor Q)</div>
+      <ul class="acciones-rl" id="ranking"></ul>
+    </div>
+  </section>
+
+  <section class="tarjeta" style="grid-column:1/-1">
+    <h2>Tabla Q del agente (lo que ha aprendido) · <span id="resumenQ" class="dato"></span></h2>
+    <div class="tabla-scroll"><table id="tablaQ"></table></div>
+  </section>
+</main>
+
+<script>
+const EJEMPLOS = {
+  rapido:     {Agent_Age:25, Agent_Rating:4.9, Store_Latitude:12.914, Store_Longitude:77.678, Drop_Latitude:12.934, Drop_Longitude:77.688, Order_Date:"2022-03-15", Order_Time:"10:00", Pickup_Time:"10:10", Weather:"Sunny",  Traffic:"Low", Vehicle:"motorcycle", Area:"Urban", Category:"Grocery"},
+  intermedio: {Agent_Age:30, Agent_Rating:4.6, Store_Latitude:12.914, Store_Longitude:77.678, Drop_Latitude:12.954, Drop_Longitude:77.718, Order_Date:"2022-03-19", Order_Time:"18:30", Pickup_Time:"18:45", Weather:"Fog",    Traffic:"Jam", Vehicle:"motorcycle", Area:"Metropolitian", Category:"Clothing"},
+  lento:      {Agent_Age:38, Agent_Rating:4.1, Store_Latitude:22.745, Store_Longitude:75.892, Drop_Latitude:22.875, Drop_Longitude:76.022, Order_Date:"2022-03-20", Order_Time:"19:30", Pickup_Time:"19:45", Weather:"Stormy", Traffic:"Jam", Vehicle:"scooter", Area:"Metropolitian", Category:"Electronics"},
+};
+const $ = (id) => document.getElementById(id);
+let API = "";
+try { API = (new URLSearchParams(location.search).get("api") || localStorage.getItem("api") || "").replace(/\/+$/, ""); } catch {}
+if (location.hostname.endsWith("trycloudflare.com") || location.hostname === "localhost" || location.hostname === "127.0.0.1") API = "";
+const url = (ruta) => (API ? API + "/" : "") + ruta;
+const form = $("form");
+let ultimo = null, estrellas = 0, ACC = {};
+
+function escapar(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function md(s){ return escapar(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>"); }
+
+function llenarForm(d){ for (const [k,v] of Object.entries(d)) if (form.elements[k]) form.elements[k].value = v; }
+
+async function iniciar(){
+  try {
+    const r = await (await fetch(url("opciones"))).json();
+    ACC = r.acciones;
+    for (const [campo, valores] of Object.entries(r.opciones)) {
+      form.elements[campo].innerHTML = valores.map(v => `<option>${escapar(v)}</option>`).join("");
+    }
+    llenarForm(EJEMPLOS.intermedio);
+    const s = await (await fetch(url("salud"))).json();
+    $("estadoApi").textContent = `API lista · red: ${s.modelo_neuronal} · LLM: ${s.llm}`;
+    pintarTabla(await (await fetch(url("q_tabla"))).json());
+    $("cajaApi").open = false;
+  } catch(e) {
+    $("estadoApi").innerHTML = `<span class="error">No se pudo conectar con la API${API ? " (" + escapar(API) + ")" : ""}. Revisa que el notebook esté corriendo en Colab y pega su link abajo.</span>`;
+    $("cajaApi").open = true;
+  }
+}
+
+// Servidor de la API: vacío = el mismo sitio (cuando la página la sirve FastAPI en Colab);
+// en Vercel se usa el link del túnel de Colab (?api=… en la URL o el campo de abajo).
+function guardarApi(v){ API = (v || "").trim().replace(/\/+$/, ""); try { localStorage.setItem("api", API); } catch {} }
+$("urlApi").value = API;
+$("conectar").onclick = () => { guardarApi($("urlApi").value); $("estadoApi").textContent = "Conectando…"; iniciar(); };
+
+document.querySelectorAll("[data-ej]").forEach(b => b.onclick = () => llenarForm(EJEMPLOS[b.dataset.ej]));
+
+form.onsubmit = async (ev) => {
+  ev.preventDefault();
+  const datos = Object.fromEntries(new FormData(form));
+  for (const k of ["Agent_Age","Agent_Rating","Store_Latitude","Store_Longitude","Drop_Latitude","Drop_Longitude"]) datos[k] = parseFloat(datos[k]);
+  $("btn").disabled = true; $("btn").textContent = "Pensando… (red + LLM)";
+  $("vacio").classList.add("oculto"); $("resultado").classList.add("oculto"); $("cargando").classList.remove("oculto");
+  try {
+    const resp = await fetch(url("predict"), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(datos)});
+    const r = await resp.json();
+    if (!resp.ok) throw new Error(r.detail || resp.statusText);
+    ultimo = r; estrellas = 0; pintarEstrellas(); $("msgFb").textContent = ""; $("comentario").value = "";
+    $("resultado").classList.remove("oculto");
+    const min = r.prediccion.minutos_estimados, p = r.prediccion.prob_lenta;
+    $("hero").className = "hero " + r.estado;
+    $("chip").textContent = r.prediccion.resultado;
+    $("minutos").textContent = Math.round(min);
+    $("prob").textContent = (p*100).toFixed(1) + "%";
+    $("probBarra").style.width = (p*100).toFixed(1) + "%";
+    $("marca").style.left = Math.min(Math.max(min, 0), 240) / 240 * 100 + "%";
+    $("llm").innerHTML = pintarRecomendacion(r.recomendacion_llm, r.estado);
+    $("accion").textContent = "Estrategia: " + (ACC[r.accion] ? r.accion.replace(/_/g, " ") : r.accion);
+    $("accion").title = ACC[r.accion] || "";
+    $("modo").textContent = r.modo; $("modo").className = "pill " + (r.modo === "exploración" ? "explo" : "explota");
+    $("eps").textContent = r.epsilon; $("seg").textContent = r.segundos_llm;
+    const qMax = Math.max(1e-9, ...r.ranking_rl.map(a => Math.abs(a.Q)));
+    $("ranking").innerHTML = r.ranking_rl.map(a => `<li><span>${escapar(a.texto)}</span>
+      <span class="votos"><button data-a="${a.accion}" data-g="1" title="Me gusta">👍</button><button data-a="${a.accion}" data-g="0" title="No me gusta">👎</button></span>
+      <span class="q">Q = ${a.Q}<span class="barra"><i style="width:${Math.max(a.Q, 0) / qMax * 100}%"></i></span></span></li>`).join("");
+    $("ranking").querySelectorAll("button").forEach(b => b.onclick = () => enviarFb({accion:b.dataset.a, me_gusta:b.dataset.g==="1"}, b));
+  } catch(e) { $("vacio").classList.remove("oculto"); $("vacio").innerHTML = `<span class="error">${escapar(String(e.message||e))}</span>`; }
+  $("cargando").classList.add("oculto");
+  $("btn").disabled = false; $("btn").textContent = "Predecir y recomendar";
+};
+
+// Separa la respuesta del LLM en diagnóstico (1.), acciones (2.) y mensaje al cliente (3.).
+// Si el texto no sigue ese formato, se muestra tal cual.
+function pintarRecomendacion(texto, estado){
+  const partes = {};
+  let actual = null;
+  for (const linea of texto.split("\n")) {
+    const m = linea.match(/^\s*(?:\*\*)?\s*([123])[.)]\s*(?:\*\*)?\s*(.*)$/);
+    if (m && !partes[m[1]]) { actual = m[1]; partes[actual] = [m[2]]; }
+    else if (actual) partes[actual].push(linea);
+  }
+  if (!partes["1"] || !partes["2"]) return `<div class="llm">${md(texto)}</div>`;
+  const sinEtiqueta = s => s.replace(/^\s*\**\s*(diagn[oó]stico|acciones|mensaje[^:]*)\s*:?\s*\**\s*:?\s*/i, "").trim();
+  const diag = sinEtiqueta(partes["1"].join(" ").replace(/\s+/g, " "));
+  const acciones = partes["2"].map(l => l.trim()).filter(l => /^[-*•]/.test(l))
+    .map(l => l.replace(/^[-*•]\s*/, "")).filter(Boolean);
+  const mensaje = partes["3"] ? sinEtiqueta(partes["3"].join(" ").replace(/\s+/g, " ")).replace(/^["“]|["”]$/g, "") : "";
+  if (!acciones.length) return `<div class="llm">${md(texto)}</div>`;
+  const ico = {"Rápida":"✅", "Intermedia":"⏱️", "Lenta":"⚠️"}[estado] || "📦";
+  return `<div class="seccion">Diagnóstico del LLM</div>
+    <div class="diag"><span class="ico">${ico}</span><div>${md(diag)}</div></div>
+    <div class="seccion">Acciones recomendadas</div>
+    <ol class="pasos">${acciones.map((a, i) => `<li class="${i === 0 ? "principal-acc" : ""}"><div>${md(a)}</div></li>`).join("")}</ol>
+    ${mensaje ? `<div class="seccion">Mensaje para el cliente</div><div class="burbuja"><span class="de">Servicio al cliente</span>${md(mensaje)}</div>` : ""}`;
+}
+
+function pintarEstrellas(){ $("estrellas").querySelectorAll("span").forEach(s => s.classList.toggle("on", +s.dataset.v <= estrellas)); }
+$("estrellas").querySelectorAll("span").forEach(s => s.onclick = () => { estrellas = +s.dataset.v; pintarEstrellas(); });
+
+async function enviarFb(extra, boton){
+  if (!ultimo) return;
+  const cuerpo = {estado: ultimo.estado, accion: ultimo.accion, comentario: $("comentario").value, ...extra};
+  const resp = await fetch(url("feedback"), {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(cuerpo)});
+  const r = await resp.json();
+  if (!resp.ok) { $("msgFb").innerHTML = `<span class="error">${escapar(r.detail)}</span>`; return; }
+  const signo = r.recompensa > 0 ? "recompensa" : (r.recompensa < 0 ? "castigo" : "neutro");
+  $("msgFb").textContent = `✔ ${signo} r = ${r.recompensa} → Q(${ultimo.estado}, ${cuerpo.accion}) = ${r.q_nuevo} · ε = ${r.epsilon} · feedbacks: ${r.feedbacks}`;
+  if (boton) boton.parentElement.innerHTML = r.recompensa > 0 ? "👍 gracias" : "👎 anotado";
+  pintarTabla(r);
+}
+$("enviar").onclick = () => {
+  if (!estrellas) { $("msgFb").textContent = "Escoge de 1 a 5 estrellas."; return; }
+  enviarFb({estrellas});
+};
+
+function pintarTabla(r){
+  const estados = ["Rápida","Intermedia","Lenta"];
+  const filas = {}; r.tabla_q.forEach(f => (filas[f.accion] ??= {})[f.estado] = f);
+  const color = q => q >= 0 ? `rgba(31,138,76,${Math.min(Math.abs(q),1)*0.45})` : `rgba(192,57,43,${Math.min(Math.abs(q),1)*0.45})`;
+  const mejores = Object.fromEntries(estados.map(e => [e, Object.keys(filas).reduce((a,b) => filas[a][e].Q >= filas[b][e].Q ? a : b)]));
+  $("tablaQ").innerHTML = `<tr><th>Acción</th>${estados.map(e => `<th>${e}</th>`).join("")}</tr>` +
+    Object.entries(filas).map(([a, fs]) => `<tr><td>${escapar(ACC[a] || a)}</td>${estados.map(e =>
+      `<td style="background:${color(fs[e].Q)}">${mejores[e]===a ? "<b>" : ""}${fs[e].Q.toFixed(3)}${mejores[e]===a ? "</b>" : ""}<br><span class="dato">n=${fs[e].veces}</span></td>`).join("")}</tr>`).join("");
+  $("resumenQ").textContent = `ε = ${r.epsilon} · ${r.feedbacks} feedbacks · en negrita la mejor acción por estado`;
+}
+iniciar();
+</script>
+</body>
+</html>

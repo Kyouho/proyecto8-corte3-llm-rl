@@ -1,0 +1,164 @@
+{
+  "Q": {
+    "Rápida": {
+      "despacho_estandar": 0.06,
+      "priorizar_tienda": 0.304,
+      "ruta_alternativa": 0.0,
+      "reasignar_repartidor": -0.1,
+      "avisar_cliente": 0.1,
+      "compensar_reprogramar": -0.2
+    },
+    "Intermedia": {
+      "despacho_estandar": 0.05,
+      "priorizar_tienda": 0.105,
+      "ruta_alternativa": -0.04500000000000001,
+      "reasignar_repartidor": 0.05,
+      "avisar_cliente": 0.14,
+      "compensar_reprogramar": -0.05
+    },
+    "Lenta": {
+      "despacho_estandar": -0.2,
+      "priorizar_tienda": 0.1,
+      "ruta_alternativa": 0.15,
+      "reasignar_repartidor": 0.45399999999999996,
+      "avisar_cliente": 0.325,
+      "compensar_reprogramar": 0.2
+    }
+  },
+  "N": {
+    "Rápida": {
+      "despacho_estandar": 1,
+      "priorizar_tienda": 2,
+      "ruta_alternativa": 0,
+      "reasignar_repartidor": 0,
+      "avisar_cliente": 0,
+      "compensar_reprogramar": 0
+    },
+    "Intermedia": {
+      "despacho_estandar": 0,
+      "priorizar_tienda": 1,
+      "ruta_alternativa": 1,
+      "reasignar_repartidor": 0,
+      "avisar_cliente": 1,
+      "compensar_reprogramar": 0
+    },
+    "Lenta": {
+      "despacho_estandar": 0,
+      "priorizar_tienda": 0,
+      "ruta_alternativa": 0,
+      "reasignar_repartidor": 2,
+      "avisar_cliente": 1,
+      "compensar_reprogramar": 0
+    }
+  },
+  "historial": [
+    {
+      "fecha": "2026-11-16T20:37:45",
+      "estado": "Rápida",
+      "accion": "priorizar_tienda",
+      "recompensa": 0.5,
+      "q_antes": 0.1,
+      "q_despues": 0.22,
+      "epsilon": 0.5,
+      "tipo": "estrellas",
+      "estrellas": 4,
+      "comentario": "Coherente; priorizar no hacia falta con 13 min y la niebla no es clima favorable"
+    },
+    {
+      "fecha": "2026-11-16T20:38:15",
+      "estado": "Intermedia",
+      "accion": "priorizar_tienda",
+      "recompensa": 0.0,
+      "q_antes": 0.15,
+      "q_despues": 0.105,
+      "epsilon": 0.475,
+      "tipo": "estrellas",
+      "estrellas": 3,
+      "comentario": "Diagnostico correcto, pero con 143 min deberia avisar al cliente"
+    },
+    {
+      "fecha": "2026-11-16T20:38:48",
+      "estado": "Lenta",
+      "accion": "reasignar_repartidor",
+      "recompensa": 0.5,
+      "q_antes": 0.1,
+      "q_despues": 0.22,
+      "epsilon": 0.45125,
+      "tipo": "estrellas",
+      "estrellas": 4,
+      "comentario": "Acciones concretas y avisa al cliente; nublado no es clima adverso"
+    },
+    {
+      "fecha": "2026-11-16T20:39:15",
+      "estado": "Rápida",
+      "accion": "despacho_estandar",
+      "recompensa": -0.5,
+      "q_antes": 0.3,
+      "q_despues": 0.06,
+      "epsilon": 0.42868749999999994,
+      "tipo": "estrellas",
+      "estrellas": 2,
+      "comentario": "Ignora el atasco y ofrece descuento en entrega rapida"
+    },
+    {
+      "fecha": "2026-11-16T20:39:44",
+      "estado": "Intermedia",
+      "accion": "avisar_cliente",
+      "recompensa": 0.0,
+      "q_antes": 0.2,
+      "q_despues": 0.14,
+      "epsilon": 0.40725312499999994,
+      "tipo": "estrellas",
+      "estrellas": 3,
+      "comentario": "Estrategia correcta pero no menciona el atasco como causa"
+    },
+    {
+      "fecha": "2026-11-16T20:40:14",
+      "estado": "Lenta",
+      "accion": "avisar_cliente",
+      "recompensa": 0.5,
+      "q_antes": 0.25,
+      "q_despues": 0.325,
+      "epsilon": 0.3868904687499999,
+      "tipo": "estrellas",
+      "estrellas": 4,
+      "comentario": "Buenas acciones para pedido lento; el sol no es causa de demora"
+    },
+    {
+      "fecha": "2026-11-16T20:40:43",
+      "estado": "Rápida",
+      "accion": "priorizar_tienda",
+      "recompensa": 0.5,
+      "q_antes": 0.22,
+      "q_despues": 0.304,
+      "epsilon": 0.3675459453124999,
+      "tipo": "estrellas",
+      "estrellas": 4,
+      "comentario": "Acciones adecuadas para la tormenta de arena"
+    },
+    {
+      "fecha": "2026-11-16T20:41:13",
+      "estado": "Intermedia",
+      "accion": "ruta_alternativa",
+      "recompensa": -0.5,
+      "q_antes": 0.15,
+      "q_despues": -0.04500000000000001,
+      "epsilon": 0.34916864804687486,
+      "tipo": "estrellas",
+      "estrellas": 2,
+      "comentario": "Ruta alternativa no aplica con trafico bajo; niebla no es buen clima"
+    },
+    {
+      "fecha": "2026-11-16T20:41:43",
+      "estado": "Lenta",
+      "accion": "reasignar_repartidor",
+      "recompensa": 1.0,
+      "q_antes": 0.22,
+      "q_despues": 0.45399999999999996,
+      "epsilon": 0.3317102156445311,
+      "tipo": "estrellas",
+      "estrellas": 5,
+      "comentario": "Diagnostico correcto y acciones concretas"
+    }
+  ]
+}
